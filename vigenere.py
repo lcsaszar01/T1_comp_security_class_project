@@ -6,7 +6,7 @@ def vigenere_cipher():
    ############## OPTIONS FOR VIGENERE CIPHER ##############
    # Type of alphabet:
    # "standard" (letters-only), "alphanum" (letters+numbers), "all" (ASCII)
-   alpha_type = "standard"
+   alpha_type = "all"
 
    # Conversion type (for letters-only option):
    # "lower" (all lowercase), "upper" (all uppercase), "default" (no conversion)
@@ -48,7 +48,7 @@ def vigenere_cipher():
    alpha_dict = dict((j,i) for i,j in enumerate(alphabet))
    print(alpha_dict);
 
-   # Fetches the input file & key #
+   # Fetches the input file & key # 
       
    # print("Enter a key")
    # key = list(input())
@@ -80,7 +80,7 @@ def vigenere_cipher():
 
    # Begin Encryption Function
    def vigenere_encrypt(key, plaintext, dictionary):
-       cipher_result = ""
+       encrypt_result = ""
        max_enum = max(dictionary.values())
        pt_enum = 0 
        key_enum = 0
@@ -102,10 +102,10 @@ def vigenere_cipher():
            if c not in dictionary.keys():
                if (compliant_type == "remove"):
                     # Do nothing (ignore the character)
-                    cipher_result = cipher_result
+                    encrypt_result = encrypt_result
                elif (compliant_type == "ignore"):
                     # Keep character in cipher_result
-                    cipher_result = cipher_result + c
+                    encrypt_result = encrypt_result + c
                else: 
                     print("Failed to check non-compliance! Check cipher options!", file=sys.stderr)
                     sys.exit()
@@ -114,24 +114,53 @@ def vigenere_cipher():
                key_enum = dictionary[key[key_index]]
 
                cipher_c = (pt_enum + key_enum) % max_enum
-               cipher_result = cipher_result + list(dictionary.keys())[list(dictionary.values()).index(cipher_c)]
+               encrypt_result = encrypt_result + list(dictionary.keys())[list(dictionary.values()).index(cipher_c)]
                
                key_index = key_index + 1
                if (key_index >= len(key)):
                    key_index = 0
                             
-       return cipher_result
+       return encrypt_result
    
    # Begin Decryption Function
-   def vigenere_decrypt(key, ciphertext):
-       print("Do more stuff")
-       return "dud"
+   def vigenere_decrypt(key, ciphertext, dictionary):
+       decrypt_result = ""
+       max_enum = max(dictionary.values())
+       ct_enum = 0 
+       key_enum = 0
+       key_index = 0
+
+       # TODO: Error checking
+
+       for c in ciphertext:
+           if c not in dictionary.keys():
+               if (compliant_type == "remove"):
+                    # Do nothing (ignore the character)
+                    decrypt_result = decrypt_result
+               elif (compliant_type == "ignore"):
+                    # Keep character in cipher_result
+                    decrypt_result = decrypt_result + c
+               else: 
+                    print("Failed to check non-compliance! Check cipher options!", file=sys.stderr)
+                    sys.exit()
+           else:
+               ct_enum = dictionary[c]
+               key_enum = dictionary[key[key_index]]
+
+               plain_c = (ct_enum - key_enum) % max_enum
+               decrypt_result = decrypt_result + list(dictionary.keys())[list(dictionary.values()).index(plain_c)]
+               
+               key_index = key_index + 1
+               if (key_index >= len(key)):
+                   key_index = 0
+             
+       return decrypt_result
    
    pt_to_ciphertext = vigenere_encrypt(key, init_plaintext, alpha_dict)
-   # ct_to_plaintext = vigenere_decrypt(key, pt_to_ciphertext)
+   ct_to_plaintext = vigenere_decrypt(key, pt_to_ciphertext, alpha_dict)
 
    print("Ciphertext is: " + pt_to_ciphertext)
-   # print("Plaintext is: " + ct_to_plaintext)
+   print("Plaintext is: " + ct_to_plaintext)
 
 if __name__ == "__main__":
     vigenere_cipher();

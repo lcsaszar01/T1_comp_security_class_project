@@ -1,6 +1,7 @@
 ﻿import sys
 import random
 from PySide6 import QtCore, QtWidgets, QtGui
+import vigenere
 
 class MyWidget(QtWidgets.QWidget):
     def __init__(self):
@@ -23,6 +24,7 @@ class MyWidget(QtWidgets.QWidget):
         self.text.setText(random.choice(self.hello))
 
 if __name__ == "__main__":
+    vigenere.vigenere_cipher()
     app = QtWidgets.QApplication([])
 
     widget = MyWidget()
