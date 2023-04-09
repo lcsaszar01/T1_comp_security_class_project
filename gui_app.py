@@ -24,7 +24,7 @@ class MyWidget(QtWidgets.QWidget):
         self.text.setText(random.choice(self.hello))
 
 if __name__ == "__main__":
-    vigenere.vigenere_cipher()
+    vigenere.vigenere_cipher("world_tester", "Let's see if this actually works")
     app = QtWidgets.QApplication([])
 
     widget = MyWidget()
