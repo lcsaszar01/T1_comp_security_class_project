@@ -180,5 +180,4 @@ def vigenere_cipher(key, input_str):
    print_output(ct_to_plaintext, "plaintext")
 
 if __name__ == "__main__":
-    # vigenere_cipher("apple", "?439asdANJ#9fdas)(#$4tfcsdfsfd BEEMOVIE RULES a093njcosd0930j0fsd");
     vigenere_cipher("barrybeebenson??", "beemovie.txt")
