@@ -2,7 +2,7 @@ import string
 import sys
 import fileinput
 
-def vigenere_cipher():
+def vigenere_cipher(key, input_str):
    ############## OPTIONS FOR VIGENERE CIPHER ##############
    # Type of alphabet:
    # "standard" (letters-only), "alphanum" (letters+numbers), "all" (ASCII)
@@ -18,13 +18,14 @@ def vigenere_cipher():
 
    # Print Output:
    # "preserve" (print out exactly as input), "prettify" (print in blocks of 8-characters)
-   print_type = "preserve"
+   print_type = "prettify"
+   block_size = 8
 
-   # Print Output (whitespaces):
-   # "show" (prints out whitespace characters), "literal" (print out exact characters)
-   print_whitespace = "show"
+   # Whitespace Options:
+   # "literal" (displays & preserves whitespace characters), "ignore" (removes whitespace characters)
+   keep_whitespace = "literal"
    # END OPTIONS ####################
-
+  
    # Choose an alphabet #
    if (alpha_type == "standard"):
        if (convert_type == "upper"):
@@ -39,31 +40,31 @@ def vigenere_cipher():
    elif (alpha_type == "alphanum"):
        alphabet = string.ascii_letters + string.digits
    elif (alpha_type == "all"):
-       alphabet = string.printable
+       if (keep_whitespace == "literal"):
+           alphabet = string.printable
+       elif (keep_whitespace == "ignore"):
+           alphabet = ""
+           for c in string.printable:
+               if c not in string.whitespace:
+                   alphabet = alphabet + c
    else:
        print("Failed to produce alphabet! Check cipher options!", file=sys.stderr)
        sys.exit()
 
    # Produces the enumerated alphabet #
    alpha_dict = dict((j,i) for i,j in enumerate(alphabet))
-   print(alpha_dict);
+   # print("Dictionary: ", alpha_dict);
 
    # Fetches the input file & key # 
-      
-   # print("Enter a key")
-   # key = list(input())
-   # print(key)
+   init_plaintext = ""
 
-   # print("Enter your filename")
-   # filename = input()
-   # plaintext = fileinput.input(files=(filename))
-   # print(plaintext)
-
-
-
-   # TESTING USING ONLY STRING #
-   key = "apple"
-   init_plaintext = "?439asdANJ#9fdas)(#$4tfcsdfsfd BEEMOVIE RULES a093njcosd0930j0fsd"
+   try:
+       with fileinput.input(files=(input_str)) as f:
+           for line in f:
+                init_plaintext = init_plaintext + line
+   except: 
+       print("Not a File! Assuming input is a string.")
+       init_plaintext = input_str
 
    # Some Input --> Plaintext (string) Conversions #
    # Checks if input is standard vigenere cipher
@@ -95,9 +96,6 @@ def vigenere_cipher():
 
        # Error Case: Invalid Dictionary
 
-       print("Value of key is: ", key[key_enum])
-       print("Max Dictionary Value: ", max(dictionary.values()))
-       
        for c in plaintext:
            if c not in dictionary.keys():
                if (compliant_type == "remove"):
@@ -156,11 +154,31 @@ def vigenere_cipher():
              
        return decrypt_result
    
+   def print_output(text, output_type):
+       output_str = ""
+       if (print_type == "preserve" or output_type == "plaintext"):
+           print(text)
+       elif (print_type == "prettify" and output_type == "cipher"):
+           index = 0
+           block = ""
+           for c in text:
+               block = block + c
+               index = index + 1
+               if (index == block_size):
+                   output_str = output_str + block + " "
+                   block = ""
+                   index = 0
+           output_str = output_str + block
+       print(output_str)
+
    pt_to_ciphertext = vigenere_encrypt(key, init_plaintext, alpha_dict)
    ct_to_plaintext = vigenere_decrypt(key, pt_to_ciphertext, alpha_dict)
-
-   print("Ciphertext is: " + pt_to_ciphertext)
-   print("Plaintext is: " + ct_to_plaintext)
+   
+   print("Ciphertext is: ")
+   print_output(pt_to_ciphertext, "cipher")
+   print("Plaintext is: ")
+   print_output(ct_to_plaintext, "plaintext")
 
 if __name__ == "__main__":
-    vigenere_cipher();
+    # vigenere_cipher("apple", "?439asdANJ#9fdas)(#$4tfcsdfsfd BEEMOVIE RULES a093njcosd0930j0fsd");
+    vigenere_cipher("barrybeebenson??", "beemovie.txt")
