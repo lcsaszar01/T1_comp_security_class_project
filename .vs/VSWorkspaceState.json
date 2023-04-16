@@ -1,8 +1,9 @@
 {
   "ExpandedNodes": [
     "",
-    "\\env\\Include"
+    "\\env\\Include",
+    "\\env\\Lib"
   ],
-  "SelectedNode": "\\env",
+  "SelectedNode": "\\gui_app.py",
   "PreviewInSolutionExplorer": false
 }

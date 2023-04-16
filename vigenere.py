@@ -179,5 +179,7 @@ def vigenere_cipher(key, input_str):
    print("Plaintext is: ")
    print_output(ct_to_plaintext, "plaintext")
 
+   return pt_to_ciphertext
+
 if __name__ == "__main__":
     vigenere_cipher("barrybeebenson??", "beemovie.txt")
