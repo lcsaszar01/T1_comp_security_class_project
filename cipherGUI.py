@@ -228,6 +228,7 @@ class RSATextMode(QWidget):
 ############ DEFAULT MAIN PROGRAM ###########
 if __name__ == "__main__":
     # Main Qt Application
+    vigenere.vigenere_cipher_encrypt_file("beemovie.txt", "key.txt", "beeencrypt.txt", ["all", "default", "remove", "prettify", 8, "literal"])
     app = QApplication(sys.argv)
 
     # QMainWindow with Qt Layout
