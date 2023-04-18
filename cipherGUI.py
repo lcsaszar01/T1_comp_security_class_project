@@ -8,6 +8,7 @@
 ########### LIBRARIES ##########
 # Python Libraries
 from ast import main
+from doctest import debug_script
 import random
 import datetime
 
@@ -31,7 +32,9 @@ from PySide6.QtWidgets import (
     QComboBox,
     QDialog,
     QWidget,
-    QGridLayout
+    QGridLayout,
+    QRadioButton,
+    QFileDialog
 )
 
 # Cipher Files 
@@ -100,25 +103,227 @@ class VigenereGUI(QWidget):
         mainLayout.addWidget(tabWidget)
         self.setLayout(mainLayout)
 
+### VIGENERE FILE MODE ###
 class VigenereFileMode(QWidget):
     def __init__(self, parent: QWidget):
         super().__init__(parent)
-        file_name_label = QLabel("File Mode")
 
-        mainLayout = QVBoxLayout()
-        mainLayout.addWidget(file_name_label)
-        mainLayout.addStretch(1)
-        self.setLayout(mainLayout)
+        # Class variables
+        self.activeMode = "Encrypt"
 
+        ### Objects ###
+        # Main Labels
+        self.paramLabel = QLabel("Parameters")
+        self.filesLabel = QLabel("Files")
+        self.execLabel = QLabel("Execution")
+
+        # Sub Labels
+        self.paramModeLabel = QLabel("Mode: ")
+        self.filesKeyFileLabel = QLabel("Key Path: ")
+        self.filesSourceFileLabel = QLabel("Source Path: ")
+        self.filesDestFileLabel = QLabel("Dest Path: ")
+        self.execSuccessLabel = QLabel("...")
+
+        # Line Edits
+        self.inputKeyFile = QLineEdit()
+        self.inputSourceFile = QLineEdit()
+        self.inputDestFile = QLineEdit()
+
+        # Buttons
+        self.btnKeyFile = QPushButton("Browse")
+        self.btnSourceFile = QPushButton("Browse")
+        self.btnDestFile = QPushButton("Browse")
+        self.btnExecute = QPushButton("Begin Vigenere Cipher")
+
+        # Radio Buttons
+        self.btnEncrypt = QRadioButton("Encrypt")
+        self.btnDecrypt = QRadioButton("Decrypt")
+
+        ### Secondary Layouts ###
+        # Parameters Layout 
+        self.paramLayout = QVBoxLayout()
+
+        self.paramSubALayout = QHBoxLayout()
+        self.paramSubALayout.addWidget(self.paramModeLabel)
+        self.paramSubALayout.addWidget(self.btnEncrypt)
+        self.paramSubALayout.addWidget(self.btnDecrypt)
+
+        self.paramLayout.addWidget(self.paramLabel)
+        self.paramLayout.addLayout(self.paramSubALayout)
+
+        # Files Layout
+        self.filesLayout = QVBoxLayout()
+
+        self.filesSubALayout = QHBoxLayout()
+        self.filesSubALayout.addWidget(self.filesKeyFileLabel)
+        self.filesSubALayout.addWidget(self.inputKeyFile)
+        self.filesSubALayout.addWidget(self.btnKeyFile)
+
+        self.filesSubBLayout = QHBoxLayout()
+        self.filesSubBLayout.addWidget(self.filesSourceFileLabel)
+        self.filesSubBLayout.addWidget(self.inputSourceFile)
+        self.filesSubBLayout.addWidget(self.btnSourceFile)
+
+        self.filesSubCLayout = QHBoxLayout()
+        self.filesSubCLayout.addWidget(self.filesDestFileLabel)
+        self.filesSubCLayout.addWidget(self.inputDestFile)
+        self.filesSubCLayout.addWidget(self.btnDestFile)
+
+        self.filesLayout.addWidget(self.filesLabel)
+        self.filesLayout.addLayout(self.filesSubALayout)
+        self.filesLayout.addLayout(self.filesSubBLayout)
+        self.filesLayout.addLayout(self.filesSubCLayout)
+
+        # Execution Layout 
+        self.execLayout = QVBoxLayout()
+
+        self.execSubALayout = QHBoxLayout()
+        self.execSubALayout.addWidget(self.btnExecute)
+
+        self.execSubBLayout = QHBoxLayout()
+        self.execSubBLayout.addWidget(self.execSuccessLabel)
+
+        self.execLayout.addWidget(self.execLabel)
+        self.execLayout.addLayout(self.execSubALayout)
+        self.execLayout.addLayout(self.execSubBLayout)
+
+        ### Main Layout ###
+        self.mainLayout = QVBoxLayout()
+        self.mainLayout.addLayout(self.paramLayout)
+        self.mainLayout.addLayout(self.filesLayout)
+        self.mainLayout.addLayout(self.execLayout)
+        self.mainLayout.addStretch(1)
+        self.setLayout(self.mainLayout)
+
+        # Signals/Events
+        self.btnEncrypt.clicked.connect(self.activateEncrypt)
+        self.btnDecrypt.clicked.connect(self.activateDecrypt)
+
+        self.btnKeyFile.clicked.connect(self.openKeyFile)
+        self.btnSourceFile.clicked.connect(self.openSourceFile)
+        self.btnDestFile.clicked.connect(self.openDestFile)
+
+        self.btnExecute.clicked.connect(self.execCipher)
+
+
+    @Slot()
+    def activateDecrypt(self):
+        self.activeMode = "Decrypt"
+
+    @Slot()
+    def activateEncrypt(self):
+        self.activeMode = "Encrypt"
+
+    @Slot()
+    def openKeyFile(self):
+        # Fetches filename
+        dialog = QFileDialog(self)
+        dialog.setFileMode(QFileDialog.ExistingFile)
+        dialog.exec()
+        filename = dialog.selectedFiles()[0]
+
+        self.inputKeyFile.setText(filename)
+
+    @Slot()
+    def openSourceFile(self):
+        # Fetches filename
+        dialog = QFileDialog(self)
+        dialog.setFileMode(QFileDialog.ExistingFile)
+        dialog.exec()
+        filename = dialog.selectedFiles()[0]
+
+        self.inputSourceFile.setText(filename)
+
+    @Slot()
+    def openDestFile(self):
+        # Fetches filename
+        dialog = QFileDialog(self)
+        dialog.setFileMode(QFileDialog.AnyFile)
+        dialog.exec()
+        filename = dialog.selectedFiles()[0]
+
+        self.inputDestFile.setText(filename)
+
+    @Slot()
+    def execCipher(self):
+        options = ["all", "default", "remove", "preserve", 8, "literal"]
+        error = 0
+
+        if (self.activeMode == "Encrypt"):
+            error = vigenere.vigenere_cipher_encrypt_file(self.inputSourceFile.text(), self.inputKeyFile.text(), self.inputDestFile.text(), options)
+        elif (self.activeMode == "Decrypt"):
+            error = vigenere.vigenere_cipher_decrypt_file(self.inputSourceFile.text(), self.inputKeyFile.text(), self.inputDestFile.text(), options)
+        
+        if (error < 0):
+            self.execSuccessLabel.setText("Failure Due to Error")
+        else:
+            self.execSuccessLabel.setText("Success")
+
+### VIGENERE TEXT MODE ###
 class VigenereTextMode(QWidget):
     def __init__(self, parent: QWidget):
         super().__init__(parent)
-        file_name_label = QLabel("Text Mode")
+        # Class variables
+        self.activeMode = "Encrypt"
 
-        mainLayout = QVBoxLayout()
-        mainLayout.addWidget(file_name_label)
-        mainLayout.addStretch(1)
-        self.setLayout(mainLayout)
+        ### Objects ###
+        # Main Labels
+        self.paramLabel = QLabel("Parameters")
+        self.filesLabel = QLabel("Files")
+        self.execLabel = QLabel("Execution")
+
+        # Sub Labels
+        self.paramModeLabel = QLabel("Mode: ")
+        self.execSuccessLabel = QLabel("...")
+
+        # Line Edits
+        self.inputKeyFile = QLineEdit()
+        self.inputSourceFile = QLineEdit()
+        self.inputDestFile = QLineEdit()
+
+        # Buttons
+        self.btnExecute = QPushButton("Begin Vigenere Cipher")
+
+        # Radio Buttons
+        self.btnEncrypt = QRadioButton("Encrypt")
+        self.btnDecrypt = QRadioButton("Decrypt")
+
+        ### Secondary Layouts ###
+        # Parameters Layout 
+        self.paramLayout = QVBoxLayout()
+
+        self.paramSubALayout = QHBoxLayout()
+        self.paramSubALayout.addWidget(self.paramModeLabel)
+        self.paramSubALayout.addWidget(self.btnEncrypt)
+        self.paramSubALayout.addWidget(self.btnDecrypt)
+
+        self.paramLayout.addWidget(self.paramLabel)
+        self.paramLayout.addLayout(self.paramSubALayout)
+
+        # Files Layout
+
+        # Execution Layout 
+        self.execLayout = QVBoxLayout()
+
+        self.execSubALayout = QHBoxLayout()
+        self.execSubALayout.addWidget(self.btnExecute)
+
+        self.execSubBLayout = QHBoxLayout()
+        self.execSubBLayout.addWidget(self.execSuccessLabel)
+
+        self.execLayout.addWidget(self.execLabel)
+        self.execLayout.addLayout(self.execSubALayout)
+        self.execLayout.addLayout(self.execSubBLayout)
+
+        ### Main Layout ###
+        self.mainLayout = QVBoxLayout()
+        self.mainLayout.addLayout(self.paramLayout)
+        self.mainLayout.addLayout(self.execLayout)
+        self.mainLayout.addStretch(1)
+        self.setLayout(self.mainLayout)
+
+        # Signals/Events
+        
 
 ############ TRIPLE DES GUI ###########
 class TripleDESGUI(QWidget):
@@ -135,15 +340,160 @@ class TripleDESGUI(QWidget):
         mainLayout.addWidget(tabWidget)
         self.setLayout(mainLayout)
 
+### TRIPLE DES FILEMODE ###
 class TripleDESFileMode(QWidget):
     def __init__(self, parent: QWidget):
         super().__init__(parent)
-        file_name_label = QLabel("File Mode")
+        # Class variables
+        self.activeMode = "Encrypt"
 
-        mainLayout = QVBoxLayout()
-        mainLayout.addWidget(file_name_label)
-        mainLayout.addStretch(1)
-        self.setLayout(mainLayout)
+        ### Objects ###
+        # Main Labels
+        self.paramLabel = QLabel("Parameters")
+        self.filesLabel = QLabel("Files")
+        self.execLabel = QLabel("Execution")
+
+        # Sub Labels
+        self.paramModeLabel = QLabel("Mode: ")
+        self.filesKeyFileLabel = QLabel("Key Path: ")
+        self.filesSourceFileLabel = QLabel("Source Path: ")
+        self.filesDestFileLabel = QLabel("Dest Path: ")
+        self.execSuccessLabel = QLabel("...")
+
+        # Line Edits
+        self.inputKeyFile = QLineEdit()
+        self.inputSourceFile = QLineEdit()
+        self.inputDestFile = QLineEdit()
+
+        # Buttons
+        self.btnKeyFile = QPushButton("Browse")
+        self.btnSourceFile = QPushButton("Browse")
+        self.btnDestFile = QPushButton("Browse")
+        self.btnExecute = QPushButton("Begin Triple DES Cipher")
+
+        # Radio Buttons
+        self.btnEncrypt = QRadioButton("Encrypt")
+        self.btnDecrypt = QRadioButton("Decrypt")
+
+        ### Secondary Layouts ###
+        # Parameters Layout 
+        self.paramLayout = QVBoxLayout()
+
+        self.paramSubALayout = QHBoxLayout()
+        self.paramSubALayout.addWidget(self.paramModeLabel)
+        self.paramSubALayout.addWidget(self.btnEncrypt)
+        self.paramSubALayout.addWidget(self.btnDecrypt)
+
+        self.paramLayout.addWidget(self.paramLabel)
+        self.paramLayout.addLayout(self.paramSubALayout)
+
+        # Files Layout
+        self.filesLayout = QVBoxLayout()
+
+        self.filesSubALayout = QHBoxLayout()
+        self.filesSubALayout.addWidget(self.filesKeyFileLabel)
+        self.filesSubALayout.addWidget(self.inputKeyFile)
+        self.filesSubALayout.addWidget(self.btnKeyFile)
+
+        self.filesSubBLayout = QHBoxLayout()
+        self.filesSubBLayout.addWidget(self.filesSourceFileLabel)
+        self.filesSubBLayout.addWidget(self.inputSourceFile)
+        self.filesSubBLayout.addWidget(self.btnSourceFile)
+
+        self.filesSubCLayout = QHBoxLayout()
+        self.filesSubCLayout.addWidget(self.filesDestFileLabel)
+        self.filesSubCLayout.addWidget(self.inputDestFile)
+        self.filesSubCLayout.addWidget(self.btnDestFile)
+
+        self.filesLayout.addWidget(self.filesLabel)
+        self.filesLayout.addLayout(self.filesSubALayout)
+        self.filesLayout.addLayout(self.filesSubBLayout)
+        self.filesLayout.addLayout(self.filesSubCLayout)
+
+        # Execution Layout 
+        self.execLayout = QVBoxLayout()
+
+        self.execSubALayout = QHBoxLayout()
+        self.execSubALayout.addWidget(self.btnExecute)
+
+        self.execSubBLayout = QHBoxLayout()
+        self.execSubBLayout.addWidget(self.execSuccessLabel)
+
+        self.execLayout.addWidget(self.execLabel)
+        self.execLayout.addLayout(self.execSubALayout)
+        self.execLayout.addLayout(self.execSubBLayout)
+
+        ### Main Layout ###
+        self.mainLayout = QVBoxLayout()
+        self.mainLayout.addLayout(self.paramLayout)
+        self.mainLayout.addLayout(self.filesLayout)
+        self.mainLayout.addLayout(self.execLayout)
+        self.mainLayout.addStretch(1)
+        self.setLayout(self.mainLayout)
+
+        # Signals/Events
+        self.btnEncrypt.clicked.connect(self.activateEncrypt)
+        self.btnDecrypt.clicked.connect(self.activateDecrypt)
+
+        self.btnKeyFile.clicked.connect(self.openKeyFile)
+        self.btnSourceFile.clicked.connect(self.openSourceFile)
+        self.btnDestFile.clicked.connect(self.openDestFile)
+
+        self.btnExecute.clicked.connect(self.execCipher)
+
+
+    @Slot()
+    def activateDecrypt(self):
+        self.activeMode = "Decrypt"
+
+    @Slot()
+    def activateEncrypt(self):
+        self.activeMode = "Encrypt"
+
+    @Slot()
+    def openKeyFile(self):
+        # Fetches filename
+        dialog = QFileDialog(self)
+        dialog.setFileMode(QFileDialog.ExistingFile)
+        dialog.exec()
+        filename = dialog.selectedFiles()[0]
+
+        self.inputKeyFile.setText(filename)
+
+    @Slot()
+    def openSourceFile(self):
+        # Fetches filename
+        dialog = QFileDialog(self)
+        dialog.setFileMode(QFileDialog.ExistingFile)
+        dialog.exec()
+        filename = dialog.selectedFiles()[0]
+
+        self.inputSourceFile.setText(filename)
+
+    @Slot()
+    def openDestFile(self):
+        # Fetches filename
+        dialog = QFileDialog(self)
+        dialog.setFileMode(QFileDialog.AnyFile)
+        dialog.exec()
+        filename = dialog.selectedFiles()[0]
+
+        self.inputDestFile.setText(filename)
+
+    @Slot()
+    def execCipher(self):
+        options = ["all", "default", "remove", "preserve", 8, "literal"]
+        error = 0
+
+        if (self.activeMode == "Encrypt"):
+            print("I am doing Triple DES Encrypt")
+        elif (self.activeMode == "Decrypt"):
+            print("I am doing Triple DES Decrypt")
+        
+        if (error < 0):
+            self.execSuccessLabel.setText("Failure Due to Error")
+        else:
+            self.execSuccessLabel.setText("Success")
 
 class TripleDESTextMode(QWidget):
     def __init__(self, parent: QWidget):
@@ -173,12 +523,155 @@ class AESGUI(QWidget):
 class AESFileMode(QWidget):
     def __init__(self, parent: QWidget):
         super().__init__(parent)
-        file_name_label = QLabel("File Mode")
+        # Class variables
+        self.activeMode = "NULL"
 
-        mainLayout = QVBoxLayout()
-        mainLayout.addWidget(file_name_label)
-        mainLayout.addStretch(1)
-        self.setLayout(mainLayout)
+        ### Objects ###
+        # Main Labels
+        self.paramLabel = QLabel("Parameters")
+        self.filesLabel = QLabel("Files")
+        self.execLabel = QLabel("Execution")
+
+        # Sub Labels
+        self.paramModeLabel = QLabel("Mode: ")
+        self.filesKeyFileLabel = QLabel("Key Path: ")
+        self.filesSourceFileLabel = QLabel("Source Path: ")
+        self.filesDestFileLabel = QLabel("Dest Path: ")
+        self.execSuccessLabel = QLabel("...")
+
+        # Line Edits
+        self.inputKeyFile = QLineEdit()
+        self.inputSourceFile = QLineEdit()
+        self.inputDestFile = QLineEdit()
+
+        # Buttons
+        self.btnKeyFile = QPushButton("Browse")
+        self.btnSourceFile = QPushButton("Browse")
+        self.btnDestFile = QPushButton("Browse")
+        self.btnExecute = QPushButton("Begin AES Cipher")
+
+        # Radio Buttons
+        self.btnEncrypt = QRadioButton("Encrypt")
+        self.btnDecrypt = QRadioButton("Decrypt")
+
+        ### Secondary Layouts ###
+        # Parameters Layout 
+        self.paramLayout = QVBoxLayout()
+
+        self.paramSubALayout = QHBoxLayout()
+        self.paramSubALayout.addWidget(self.paramModeLabel)
+        self.paramSubALayout.addWidget(self.btnEncrypt)
+        self.paramSubALayout.addWidget(self.btnDecrypt)
+
+        self.paramLayout.addWidget(self.paramLabel)
+        self.paramLayout.addLayout(self.paramSubALayout)
+
+        # Files Layout
+        self.filesLayout = QVBoxLayout()
+
+        self.filesSubALayout = QHBoxLayout()
+        self.filesSubALayout.addWidget(self.filesKeyFileLabel)
+        self.filesSubALayout.addWidget(self.inputKeyFile)
+        self.filesSubALayout.addWidget(self.btnKeyFile)
+
+        self.filesSubBLayout = QHBoxLayout()
+        self.filesSubBLayout.addWidget(self.filesSourceFileLabel)
+        self.filesSubBLayout.addWidget(self.inputSourceFile)
+        self.filesSubBLayout.addWidget(self.btnSourceFile)
+
+        self.filesSubCLayout = QHBoxLayout()
+        self.filesSubCLayout.addWidget(self.filesDestFileLabel)
+        self.filesSubCLayout.addWidget(self.inputDestFile)
+        self.filesSubCLayout.addWidget(self.btnDestFile)
+
+        self.filesLayout.addWidget(self.filesLabel)
+        self.filesLayout.addLayout(self.filesSubALayout)
+        self.filesLayout.addLayout(self.filesSubBLayout)
+        self.filesLayout.addLayout(self.filesSubCLayout)
+
+        # Execution Layout 
+        self.execLayout = QVBoxLayout()
+
+        self.execSubALayout = QHBoxLayout()
+        self.execSubALayout.addWidget(self.btnExecute)
+
+        self.execSubBLayout = QHBoxLayout()
+        self.execSubBLayout.addWidget(self.execSuccessLabel)
+
+        self.execLayout.addWidget(self.execLabel)
+        self.execLayout.addLayout(self.execSubALayout)
+        self.execLayout.addLayout(self.execSubBLayout)
+
+        ### Main Layout ###
+        self.mainLayout = QVBoxLayout()
+        self.mainLayout.addLayout(self.paramLayout)
+        self.mainLayout.addLayout(self.filesLayout)
+        self.mainLayout.addLayout(self.execLayout)
+        self.mainLayout.addStretch(1)
+        self.setLayout(self.mainLayout)
+
+        # Signals/Events
+        self.btnEncrypt.clicked.connect(self.activateEncrypt)
+        self.btnDecrypt.clicked.connect(self.activateDecrypt)
+
+        self.btnKeyFile.clicked.connect(self.openKeyFile)
+        self.btnSourceFile.clicked.connect(self.openSourceFile)
+        self.btnDestFile.clicked.connect(self.openDestFile)
+
+        self.btnExecute.clicked.connect(self.execCipher)
+
+
+    @Slot()
+    def activateDecrypt(self):
+        self.activeMode = "Decrypt"
+
+    @Slot()
+    def activateEncrypt(self):
+        self.activeMode = "Encrypt"
+
+    @Slot()
+    def openKeyFile(self):
+        # Fetches filename
+        dialog = QFileDialog(self)
+        dialog.setFileMode(QFileDialog.ExistingFile)
+        dialog.exec()
+        filename = dialog.selectedFiles()[0]
+
+        self.inputKeyFile.setText(filename)
+
+    @Slot()
+    def openSourceFile(self):
+        # Fetches filename
+        dialog = QFileDialog(self)
+        dialog.setFileMode(QFileDialog.ExistingFile)
+        dialog.exec()
+        filename = dialog.selectedFiles()[0]
+
+        self.inputSourceFile.setText(filename)
+
+    @Slot()
+    def openDestFile(self):
+        # Fetches filename
+        dialog = QFileDialog(self)
+        dialog.setFileMode(QFileDialog.AnyFile)
+        dialog.exec()
+        filename = dialog.selectedFiles()[0]
+
+        self.inputDestFile.setText(filename)
+
+    @Slot()
+    def execCipher(self):
+        error = 0
+
+        if (self.activeMode == "Encrypt"):
+            print("I am doing AES Encrypt")
+        elif (self.activeMode == "Decrypt"):
+            print("I am doing AES Decrypt")
+        
+        if (error < 0):
+            self.execSuccessLabel.setText("Failure Due to Error")
+        else:
+            self.execSuccessLabel.setText("Success")
 
 class AESTextMode(QWidget):
     def __init__(self, parent: QWidget):
@@ -207,12 +700,156 @@ class RSAGUI(QWidget):
 class RSAFileMode(QWidget):
     def __init__(self, parent: QWidget):
         super().__init__(parent)
-        file_name_label = QLabel("File Mode")
+        # Class variables
+        self.activeMode = "NULL"
 
-        mainLayout = QVBoxLayout()
-        mainLayout.addWidget(file_name_label)
-        mainLayout.addStretch(1)
-        self.setLayout(mainLayout)
+        ### Objects ###
+        # Main Labels
+        self.paramLabel = QLabel("Parameters")
+        self.filesLabel = QLabel("Files")
+        self.execLabel = QLabel("Execution")
+
+        # Sub Labels
+        self.paramModeLabel = QLabel("Mode: ")
+        self.filesKeyFileLabel = QLabel("Key Path: ")
+        self.filesSourceFileLabel = QLabel("Source Path: ")
+        self.filesDestFileLabel = QLabel("Dest Path: ")
+        self.execSuccessLabel = QLabel("...")
+
+        # Line Edits
+        self.inputKeyFile = QLineEdit()
+        self.inputSourceFile = QLineEdit()
+        self.inputDestFile = QLineEdit()
+
+        # Buttons
+        self.btnKeyFile = QPushButton("Browse")
+        self.btnSourceFile = QPushButton("Browse")
+        self.btnDestFile = QPushButton("Browse")
+        self.btnExecute = QPushButton("Begin RSA Cipher")
+
+        # Radio Buttons
+        self.btnEncrypt = QRadioButton("Encrypt")
+        self.btnDecrypt = QRadioButton("Decrypt")
+
+        ### Secondary Layouts ###
+        # Parameters Layout 
+        self.paramLayout = QVBoxLayout()
+
+        self.paramSubALayout = QHBoxLayout()
+        self.paramSubALayout.addWidget(self.paramModeLabel)
+        self.paramSubALayout.addWidget(self.btnEncrypt)
+        self.paramSubALayout.addWidget(self.btnDecrypt)
+
+        self.paramLayout.addWidget(self.paramLabel)
+        self.paramLayout.addLayout(self.paramSubALayout)
+
+        # Files Layout
+        self.filesLayout = QVBoxLayout()
+
+        self.filesSubALayout = QHBoxLayout()
+        self.filesSubALayout.addWidget(self.filesKeyFileLabel)
+        self.filesSubALayout.addWidget(self.inputKeyFile)
+        self.filesSubALayout.addWidget(self.btnKeyFile)
+
+        self.filesSubBLayout = QHBoxLayout()
+        self.filesSubBLayout.addWidget(self.filesSourceFileLabel)
+        self.filesSubBLayout.addWidget(self.inputSourceFile)
+        self.filesSubBLayout.addWidget(self.btnSourceFile)
+
+        self.filesSubCLayout = QHBoxLayout()
+        self.filesSubCLayout.addWidget(self.filesDestFileLabel)
+        self.filesSubCLayout.addWidget(self.inputDestFile)
+        self.filesSubCLayout.addWidget(self.btnDestFile)
+
+        self.filesLayout.addWidget(self.filesLabel)
+        self.filesLayout.addLayout(self.filesSubALayout)
+        self.filesLayout.addLayout(self.filesSubBLayout)
+        self.filesLayout.addLayout(self.filesSubCLayout)
+
+        # Execution Layout 
+        self.execLayout = QVBoxLayout()
+
+        self.execSubALayout = QHBoxLayout()
+        self.execSubALayout.addWidget(self.btnExecute)
+
+        self.execSubBLayout = QHBoxLayout()
+        self.execSubBLayout.addWidget(self.execSuccessLabel)
+
+        self.execLayout.addWidget(self.execLabel)
+        self.execLayout.addLayout(self.execSubALayout)
+        self.execLayout.addLayout(self.execSubBLayout)
+
+        ### Main Layout ###
+        self.mainLayout = QVBoxLayout()
+        self.mainLayout.addLayout(self.paramLayout)
+        self.mainLayout.addLayout(self.filesLayout)
+        self.mainLayout.addLayout(self.execLayout)
+        self.mainLayout.addStretch(1)
+        self.setLayout(self.mainLayout)
+
+        # Signals/Events
+        self.btnEncrypt.clicked.connect(self.activateEncrypt)
+        self.btnDecrypt.clicked.connect(self.activateDecrypt)
+
+        self.btnKeyFile.clicked.connect(self.openKeyFile)
+        self.btnSourceFile.clicked.connect(self.openSourceFile)
+        self.btnDestFile.clicked.connect(self.openDestFile)
+
+        self.btnExecute.clicked.connect(self.execCipher)
+
+
+    @Slot()
+    def activateDecrypt(self):
+        self.activeMode = "Decrypt"
+
+    @Slot()
+    def activateEncrypt(self):
+        self.activeMode = "Encrypt"
+
+    @Slot()
+    def openKeyFile(self):
+        # Fetches filename
+        dialog = QFileDialog(self)
+        dialog.setFileMode(QFileDialog.ExistingFile)
+        dialog.exec()
+        filename = dialog.selectedFiles()[0]
+
+        self.inputKeyFile.setText(filename)
+
+    @Slot()
+    def openSourceFile(self):
+        # Fetches filename
+        dialog = QFileDialog(self)
+        dialog.setFileMode(QFileDialog.ExistingFile)
+        dialog.exec()
+        filename = dialog.selectedFiles()[0]
+
+        self.inputSourceFile.setText(filename)
+
+    @Slot()
+    def openDestFile(self):
+        # Fetches filename
+        dialog = QFileDialog(self)
+        dialog.setFileMode(QFileDialog.AnyFile)
+        dialog.exec()
+        filename = dialog.selectedFiles()[0]
+
+        self.inputDestFile.setText(filename)
+
+    @Slot()
+    def execCipher(self):
+        
+        error = 0
+
+        if (self.activeMode == "Encrypt"):
+            print("I am doing RSA Encrypt")
+        elif (self.activeMode == "Decrypt"):
+            print("I am doing RSA Decrypt")
+        
+        if (error < 0):
+            self.execSuccessLabel.setText("Failure Due to Error")
+        else:
+            self.execSuccessLabel.setText("Success")
 
 class RSATextMode(QWidget):
     def __init__(self, parent: QWidget):
@@ -234,7 +871,7 @@ if __name__ == "__main__":
     # QMainWindow with Qt Layout
     widget = MainBodyGUI()
     window = MainGUIWindow(widget)
-    window.resize(1200, 600)
+    window.resize(800, 600)
     window.show()
 
     sys.exit(app.exec())
