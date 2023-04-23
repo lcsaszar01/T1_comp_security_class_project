@@ -38,9 +38,9 @@ def main(key, message):
         
     
     
-key = "";
-message = b"its a big bright beautiful tomorrow."
-main(key, message)
+#key = "";
+#message = b"its a big bright beautiful tomorrow."
+#main(key, message)
   
     
     
