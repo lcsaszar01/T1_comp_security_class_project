@@ -7,6 +7,7 @@
 
 ########### LIBRARIES ########## --------------------------------------------------------------------------
 # Python Libraries
+from threading import Timer
 from timeit import default_timer as timer
 
 # PySide6 GUI Libraries
@@ -34,6 +35,8 @@ from PySide6.QtWidgets import (
 # Cipher Files 
 import vigenere
 import aes
+import rsa
+import triple_des
 
 
 ######### MAIN GUI WINDOW ########### --------------------------------------------------------------------------
@@ -1188,9 +1191,9 @@ class AESTextMode(QWidget):
         self.paramLayout = QVBoxLayout()
 
         self.paramSubALayout = QHBoxLayout()
-        self.paramSubALayout.addWidget(self.paramModeLabel)
-        self.paramSubALayout.addWidget(self.btnEncrypt)
-        self.paramSubALayout.addWidget(self.btnDecrypt)
+        self.paramSubALayout.addWidget(self.paramModeLabel, 1)
+        self.paramSubALayout.addWidget(self.btnEncrypt, 1)
+        self.paramSubALayout.addWidget(self.btnDecrypt, 2)
 
         self.paramLayout.addWidget(self.paramLabel)
         self.paramLayout.addLayout(self.paramSubALayout)
@@ -1199,12 +1202,12 @@ class AESTextMode(QWidget):
         self.textLayout = QVBoxLayout()
 
         self.textSubALayout = QHBoxLayout()
-        self.textSubALayout.addWidget(self.keyInputLabel)
-        self.textSubALayout.addWidget(self.inputKey)
+        self.textSubALayout.addWidget(self.keyInputLabel, 1)
+        self.textSubALayout.addWidget(self.inputKey, 8)
 
         self.textSubBLayout = QHBoxLayout()
-        self.textSubBLayout.addWidget(self.textInputLabel)
-        self.textSubBLayout.addWidget(self.inputText)
+        self.textSubBLayout.addWidget(self.textInputLabel, 1)
+        self.textSubBLayout.addWidget(self.inputText, 8)
 
         self.textLayout.addWidget(self.textLabel)
         self.textLayout.addLayout(self.textSubALayout)
@@ -1333,9 +1336,9 @@ class RSAFileMode(QWidget):
         self.paramLayout = QVBoxLayout()
 
         self.paramSubALayout = QHBoxLayout()
-        self.paramSubALayout.addWidget(self.paramModeLabel)
-        self.paramSubALayout.addWidget(self.btnEncrypt)
-        self.paramSubALayout.addWidget(self.btnDecrypt)
+        self.paramSubALayout.addWidget(self.paramModeLabel, 1)
+        self.paramSubALayout.addWidget(self.btnEncrypt, 1)
+        self.paramSubALayout.addWidget(self.btnDecrypt, 2)
 
         self.paramLayout.addWidget(self.paramLabel)
         self.paramLayout.addLayout(self.paramSubALayout)
@@ -1344,19 +1347,19 @@ class RSAFileMode(QWidget):
         self.filesLayout = QVBoxLayout()
 
         self.filesSubALayout = QHBoxLayout()
-        self.filesSubALayout.addWidget(self.filesKeyFileLabel)
-        self.filesSubALayout.addWidget(self.inputKeyFile)
-        self.filesSubALayout.addWidget(self.btnKeyFile)
+        self.filesSubALayout.addWidget(self.filesKeyFileLabel, 1)
+        self.filesSubALayout.addWidget(self.inputKeyFile, 6)
+        self.filesSubALayout.addWidget(self.btnKeyFile, 1)
 
         self.filesSubBLayout = QHBoxLayout()
-        self.filesSubBLayout.addWidget(self.filesSourceFileLabel)
-        self.filesSubBLayout.addWidget(self.inputSourceFile)
-        self.filesSubBLayout.addWidget(self.btnSourceFile)
+        self.filesSubBLayout.addWidget(self.filesSourceFileLabel, 1)
+        self.filesSubBLayout.addWidget(self.inputSourceFile, 6)
+        self.filesSubBLayout.addWidget(self.btnSourceFile, 1)
 
         self.filesSubCLayout = QHBoxLayout()
-        self.filesSubCLayout.addWidget(self.filesDestFileLabel)
-        self.filesSubCLayout.addWidget(self.inputDestFile)
-        self.filesSubCLayout.addWidget(self.btnDestFile)
+        self.filesSubCLayout.addWidget(self.filesDestFileLabel, 1)
+        self.filesSubCLayout.addWidget(self.inputDestFile, 6)
+        self.filesSubCLayout.addWidget(self.btnDestFile, 1)
 
         self.filesLayout.addWidget(self.filesLabel)
         self.filesLayout.addLayout(self.filesSubALayout)
@@ -1433,15 +1436,22 @@ class RSAFileMode(QWidget):
 
         self.inputDestFile.setText(filename)
 
+
     @Slot()
     def execCipher(self):
-        
         error = 0
 
+        # Get Start time
+        start = timer()
+
         if (self.activeMode == "Encrypt"):
-            print("I am doing RSA Encrypt")
+            error = rsa.rsa_encrypt_file(self.inputSourceFile.text(), self.inputKeyFile.text(), self.inputDestFile.text())
         elif (self.activeMode == "Decrypt"):
-            print("I am doing RSA Decrypt")
+            error = rsa.rsa_decrypt_file(self.inputSourceFile.text(), self.inputKeyFile.text(), self.inputDestFile.text())
+
+        # Get End time
+        end = timer()
+        execTime = "%.2f" % (end - start)
         
         if (error < 0):
             self.execSuccessLabel.setText("Error: Failure Due to Error!")
@@ -1449,13 +1459,16 @@ class RSAFileMode(QWidget):
             if (self.activeMode == "NULL"):
                 self.execSuccessLabel.setText("Error: Please choose a cipher mode!")
             else: 
-                self.execSuccessLabel.setText("Success!")
+                self.execSuccessLabel.setText("Success! Finished executing in: " + str(execTime) + " seconds!")
 
 ### RSA Text Mode ###
 class RSATextMode(QWidget):
     def __init__(self, parent: QWidget):
         super().__init__(parent)
         ### Objects ###
+        # Variables
+        self.activeMode = "NULL"
+
         # Main Labels
         self.paramLabel = QLabel("Parameters")
         self.textLabel = QLabel("Input")
@@ -1466,12 +1479,14 @@ class RSATextMode(QWidget):
         self.paramModeLabel = QLabel("Mode: ")
         self.keyInputLabel = QLabel("Key: ")
         self.textInputLabel = QLabel("Text: ")
+        self.NInputLabel = QLabel("N: ")
         self.execSuccessLabel = QLabel("...")
         self.outputTextLabel = QLabel("Result: ")
 
         # Text Areas
-        self.inputKey = QTextEdit()
+        self.inputKey = QLineEdit()
         self.inputText = QTextEdit()
+        self.inputN = QLineEdit()
 
         self.outputText = QTextEdit()
         self.outputText.setReadOnly(True)
@@ -1488,9 +1503,9 @@ class RSATextMode(QWidget):
         self.paramLayout = QVBoxLayout()
 
         self.paramSubALayout = QHBoxLayout()
-        self.paramSubALayout.addWidget(self.paramModeLabel)
-        self.paramSubALayout.addWidget(self.btnEncrypt)
-        self.paramSubALayout.addWidget(self.btnDecrypt)
+        self.paramSubALayout.addWidget(self.paramModeLabel, 1)
+        self.paramSubALayout.addWidget(self.btnEncrypt, 1)
+        self.paramSubALayout.addWidget(self.btnDecrypt, 2)
 
         self.paramLayout.addWidget(self.paramLabel)
         self.paramLayout.addLayout(self.paramSubALayout)
@@ -1499,16 +1514,22 @@ class RSATextMode(QWidget):
         self.textLayout = QVBoxLayout()
 
         self.textSubALayout = QHBoxLayout()
-        self.textSubALayout.addWidget(self.keyInputLabel)
-        self.textSubALayout.addWidget(self.inputKey)
+        self.textSubALayout.addWidget(self.keyInputLabel, 1)
+        self.textSubALayout.addWidget(self.inputKey, 8)
 
         self.textSubBLayout = QHBoxLayout()
-        self.textSubBLayout.addWidget(self.textInputLabel)
-        self.textSubBLayout.addWidget(self.inputText)
+        self.textSubBLayout.addWidget(self.textInputLabel, 1)
+        self.textSubBLayout.addWidget(self.inputText, 8)
+
+        self.textSubCLayout = QHBoxLayout()
+        self.textSubCLayout.addWidget(self.NInputLabel, 1)
+        self.textSubCLayout.addWidget(self.inputN, 8)
 
         self.textLayout.addWidget(self.textLabel)
         self.textLayout.addLayout(self.textSubALayout)
+        self.textLayout.addLayout(self.textSubCLayout)
         self.textLayout.addLayout(self.textSubBLayout)
+
 
         # Execution Layout 
         self.execLayout = QVBoxLayout()
@@ -1527,8 +1548,8 @@ class RSATextMode(QWidget):
         self.outputLayout = QVBoxLayout()
         
         self.outputSubALayout = QHBoxLayout()
-        self.outputSubALayout.addWidget(self.outputTextLabel)
-        self.outputSubALayout.addWidget(self.outputText)
+        self.outputSubALayout.addWidget(self.outputTextLabel, 1)
+        self.outputSubALayout.addWidget(self.outputText, 8)
 
         self.outputLayout.addWidget(self.outputLabel)
         self.outputLayout.addLayout(self.outputSubALayout)
@@ -1551,20 +1572,30 @@ class RSATextMode(QWidget):
     @Slot()
     def activateDecrypt(self):
         self.activeMode = "Decrypt"
+        self.keyInputLabel.setText("Public Key (E): ")
+        self.textInputLabel.setText("Ciphertext: ")
 
     @Slot()
     def activateEncrypt(self):
         self.activeMode = "Encrypt"
+        self.keyInputLabel.setText("Private Key (D): ")
+        self.textInputLabel.setText("Plaintext: ")
 
     @Slot()
     def execCipher(self):
-        options = ["all", "default", "remove", "preserve", 8, "literal"]
         error = 0
+        
+        # Get start time
+        start = timer()
 
         if (self.activeMode == "Encrypt"):
-            error = error
+            error = rsa.rsa_encrypt(self.inputText.document().toPlainText(), int(self.inputKey.text()), int(self.inputN.text())) 
         elif (self.activeMode == "Decrypt"):
-            error = error
+            error = rsa.rsa_decrypt(self.inputText.document().toPlainText(), self.inputKey.text(), self.inputN.text())
+
+        # Get end time 
+        end = timer() 
+        execTime = "%.2f" % (end - start)
 
         try: 
             if (error < 0):
@@ -1573,9 +1604,9 @@ class RSATextMode(QWidget):
                 if (self.activeMode == "NULL"):
                     self.execSuccessLabel.setText("Error: Please choose a cipher mode!")
                 else: 
-                    self.execSuccessLabel.setText("Success!")
+                    self.execSuccessLabel.setText("Success! Finished executing in " + str(execTime) + " seconds!")
         except:
-            self.execSuccessLabel.setText("Success!")
+            self.execSuccessLabel.setText("Success! Finished executing in " + str(execTime) + " seconds!")
             self.outputText.setText(error)
 
 

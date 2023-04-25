@@ -12,3 +12,8 @@ Steps for running the code on the device:
 
 Tip: The greatest pain in any interface is making a system that actually works 
 and there isn't some sort of discrepancy somewhere. This is pure pain... 
+
+Other Notes: 
+If you get dependency warnings or flags, you may need to install the respective
+libraries. This is from the top of my head:
+a) pip install pycryptodome
