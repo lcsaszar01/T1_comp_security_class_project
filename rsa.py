@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 ﻿from ctypes import sizeof
+=======
+from ctypes import sizeof
+>>>>>>> 2eb31b68eee3eaec13b818ed30d1c49819373d45
 import math
 import fileinput
 
@@ -34,7 +38,11 @@ def rsa_decrypt(hex_encrypted, d, n):
     decrypted_message = decrypted_int.to_bytes(math.ceil(decrypted_int.bit_length() / 8), 'big').decode('utf-8')
     return decrypted_message
 
+<<<<<<< HEAD
 def rsa_encrypt_file(source_file, key_file, dest_file):
+=======
+def rsa_encrypt_file(source_file, key_file):
+>>>>>>> 2eb31b68eee3eaec13b818ed30d1c49819373d45
   # read in the plaintext file and key file
   plaintext = read_file(source_file)
   if(plaintext == -1):
@@ -50,6 +58,7 @@ def rsa_encrypt_file(source_file, key_file, dest_file):
   ciphertext = rsa_encrypt(plaintext, e, n)
 
   # create file with output
+<<<<<<< HEAD
   result = create_file(ciphertext, dest_file)
   if(result == -1):
     return -1
@@ -62,6 +71,18 @@ def rsa_decrypt_file(source_file, key_file, dest_file):
     return -1
   e, d, n = read_keys(key_file)
   print(e, d, n)
+=======
+  result = create_file(content, dest_name)
+  if(result == -1):
+    return -1
+
+def rsa_decrypt_file(source_file, key_file):
+  # read in the plaintext file and the key file
+  ciphertext = read_file(source_file)
+  if(plaintext == -1):
+    return -1
+  e, d, n = read_keys(key_file)
+>>>>>>> 2eb31b68eee3eaec13b818ed30d1c49819373d45
 
   # error checking on the given e, d, and n
   e_result = input_error_check(e, d, n)
@@ -72,10 +93,16 @@ def rsa_decrypt_file(source_file, key_file, dest_file):
   plaintext = rsa_decrypt(ciphertext, d, n)
 
   # create file with output
+<<<<<<< HEAD
   result = create_file(plaintext, dest_file)
   if(result == -1):
     return -1
   return 0 
+=======
+  result = create_file(content, dest_name)
+  if(result == -1):
+    return -1
+>>>>>>> 2eb31b68eee3eaec13b818ed30d1c49819373d45
 
 def read_file(source_file):
   data = ""
@@ -86,8 +113,11 @@ def read_file(source_file):
   except:
     return -1
 
+<<<<<<< HEAD
   return data
 
+=======
+>>>>>>> 2eb31b68eee3eaec13b818ed30d1c49819373d45
 def read_keys(source_file):
   f = open(source_file, 'r')
   e = 0
@@ -101,10 +131,17 @@ def read_keys(source_file):
     elif count == 2:
       d = int(line.strip())
     elif count == 3:
+<<<<<<< HEAD
       n = int(line.strip())
     count += 1
   
   return e, d, n
+=======
+      n = int(line.string())
+    count += 1
+  
+  return e, d, n;
+>>>>>>> 2eb31b68eee3eaec13b818ed30d1c49819373d45
 
 def input_error_check(e, d, n): # check to see if e, d, and n are valid RSA key pairs
   int = 1
@@ -130,4 +167,8 @@ if __name__ == "__main__":
   print(encrypted)
   encrypted_input = input("enter a string to decrypt: ")
   decrypted = rsa_decrypt(encrypted_input, d, n)
+<<<<<<< HEAD
   print(decrypted)
+=======
+  print(decrypted)
+>>>>>>> 2eb31b68eee3eaec13b818ed30d1c49819373d45
