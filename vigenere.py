@@ -264,6 +264,14 @@ def vigenere_cipher_decrypt_file(source_file, key_file, dest_file, options):
     return 0
 
 def vigenere_cipher_encrypt_text(source_str, key_str, options):
+    # Checks inputs
+    if (key_str == ""):
+        print("Error: Empty key string received")
+        return -4
+
+    if (source_str == ""):
+        print("Error: Empty input string received")
+        return -6
     # Makes proper alphabet based on provided options
     alphabet = make_alphabet(options)
 
@@ -276,6 +284,15 @@ def vigenere_cipher_encrypt_text(source_str, key_str, options):
     return ciphertext
 
 def vigenere_cipher_decrypt_text(source_str, key_str, options):
+    # Checks inputs    
+    if (key_str == ""):
+        print("Error: Empty key string received")
+        return -4
+
+    if (source_str == ""):
+        print("Error: Empty input string received")
+        return -6
+
     # Makes proper alphabet based on provided options
     alphabet = make_alphabet(options)
 

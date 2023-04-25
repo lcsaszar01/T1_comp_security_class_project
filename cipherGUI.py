@@ -7,6 +7,7 @@
 
 ########### LIBRARIES ########## --------------------------------------------------------------------------
 # Python Libraries
+from timeit import default_timer as timer
 from ctypes import *
 # lib = cdll.LoadLibrary('./tdes.so')
 
@@ -34,6 +35,7 @@ from PySide6.QtWidgets import (
 
 # Cipher Files 
 import vigenere
+# import aes
 
 
 ######### MAIN GUI WINDOW ########### --------------------------------------------------------------------------
@@ -120,8 +122,8 @@ class VigenereFileMode(QWidget):
         # Sub Labels
         self.paramModeLabel = QLabel("Mode: ")
         self.paramOption0Label = QLabel("Characters: ")
-        self.paramOption1Label = QLabel("Letter Case: \n (Only for 'Letters-only' option) ")
-        self.paramOption2Label = QLabel("Non-alphabet Symbols: ")
+        self.paramOption1Label = QLabel("Letter Case:\n(Only affects 'Letters' option) ")
+        self.paramOption2Label = QLabel("Non-compliant Symbols: ")
         self.paramOption5Label = QLabel("Whitespace: ")
         self.filesKeyFileLabel = QLabel("Key Path: ")
         self.filesSourceFileLabel = QLabel("Source Path: ")
@@ -146,18 +148,18 @@ class VigenereFileMode(QWidget):
         self.modeGroup.addButton(self.btnEncrypt)
         self.modeGroup.addButton(self.btnDecrypt)
         
-        self.btnStandard = QRadioButton("Letters-only \n (AaBb)")
-        self.btnAlphaNum = QRadioButton("Alphanumeric \n (AaBb0123)")
-        self.btnASCII = QRadioButton("All Printable Symbols \n (AaBb0123$@%)")
+        self.btnStandard = QRadioButton("Letters\n(AaBb)")
+        self.btnAlphaNum = QRadioButton("Alphanumeric\n(AaBb0123)")
+        self.btnASCII = QRadioButton("All Printable Symbols\n(AaBb0123$@%)")
 
         self.options0Group = QButtonGroup()
         self.options0Group.addButton(self.btnStandard)
         self.options0Group.addButton(self.btnAlphaNum)
         self.options0Group.addButton(self.btnASCII)
 
-        self.btnLowerCase = QRadioButton("lowercase letters")
-        self.btnUpperCase = QRadioButton("UPPERCASE LETTERS")
-        self.btnDefaultCase = QRadioButton("Default Letters")
+        self.btnLowerCase = QRadioButton("Lowercase (ab)")
+        self.btnUpperCase = QRadioButton("Uppercase (AB)")
+        self.btnDefaultCase = QRadioButton("Default (AaBb)")
 
         self.options1Group = QButtonGroup()
         self.options1Group.addButton(self.btnLowerCase)
@@ -183,32 +185,32 @@ class VigenereFileMode(QWidget):
         self.paramLayout = QVBoxLayout()
 
         self.paramSubALayout = QHBoxLayout()
-        self.paramSubALayout.addWidget(self.paramModeLabel)
-        self.paramSubALayout.addWidget(self.btnEncrypt)
-        self.paramSubALayout.addWidget(self.btnDecrypt)
+        self.paramSubALayout.addWidget(self.paramModeLabel, 1)
+        self.paramSubALayout.addWidget(self.btnEncrypt, 1)
+        self.paramSubALayout.addWidget(self.btnDecrypt, 2)
 
         self.paramSubBLayout = QHBoxLayout()
-        self.paramSubBLayout.addWidget(self.paramOption0Label)
-        self.paramSubBLayout.addWidget(self.btnASCII)
-        self.paramSubBLayout.addWidget(self.btnAlphaNum)
-        self.paramSubBLayout.addWidget(self.btnStandard)
+        self.paramSubBLayout.addWidget(self.paramOption0Label, 1)
+        self.paramSubBLayout.addWidget(self.btnASCII, 1)
+        self.paramSubBLayout.addWidget(self.btnAlphaNum, 1)
+        self.paramSubBLayout.addWidget(self.btnStandard, 1)
 
 
         self.paramSubCLayout = QHBoxLayout()
-        self.paramSubCLayout.addWidget(self.paramOption1Label)
-        self.paramSubCLayout.addWidget(self.btnDefaultCase)
-        self.paramSubCLayout.addWidget(self.btnLowerCase)
-        self.paramSubCLayout.addWidget(self.btnUpperCase)
+        self.paramSubCLayout.addWidget(self.paramOption1Label, 1)
+        self.paramSubCLayout.addWidget(self.btnDefaultCase, 1)
+        self.paramSubCLayout.addWidget(self.btnLowerCase, 1)
+        self.paramSubCLayout.addWidget(self.btnUpperCase, 1)
 
         self.paramSubDLayout = QHBoxLayout()
-        self.paramSubDLayout.addWidget(self.paramOption2Label)
-        self.paramSubDLayout.addWidget(self.btnRemoveS)
-        self.paramSubDLayout.addWidget(self.btnIgnoreS)
+        self.paramSubDLayout.addWidget(self.paramOption2Label, 1)
+        self.paramSubDLayout.addWidget(self.btnRemoveS, 1)
+        self.paramSubDLayout.addWidget(self.btnIgnoreS, 2)
 
         self.paramSubGLayout = QHBoxLayout()
-        self.paramSubGLayout.addWidget(self.paramOption5Label)
-        self.paramSubGLayout.addWidget(self.btnLiteralW)
-        self.paramSubGLayout.addWidget(self.btnIgnoreW)
+        self.paramSubGLayout.addWidget(self.paramOption5Label, 1)
+        self.paramSubGLayout.addWidget(self.btnLiteralW, 1)
+        self.paramSubGLayout.addWidget(self.btnIgnoreW, 2)
 
         self.paramLayout.addWidget(self.paramLabel)
         self.paramLayout.addLayout(self.paramSubALayout)
@@ -221,19 +223,19 @@ class VigenereFileMode(QWidget):
         self.filesLayout = QVBoxLayout()
 
         self.filesSubALayout = QHBoxLayout()
-        self.filesSubALayout.addWidget(self.filesKeyFileLabel)
-        self.filesSubALayout.addWidget(self.inputKeyFile)
-        self.filesSubALayout.addWidget(self.btnKeyFile)
+        self.filesSubALayout.addWidget(self.filesKeyFileLabel, 1)
+        self.filesSubALayout.addWidget(self.inputKeyFile, 6)
+        self.filesSubALayout.addWidget(self.btnKeyFile, 1)
 
         self.filesSubBLayout = QHBoxLayout()
-        self.filesSubBLayout.addWidget(self.filesSourceFileLabel)
-        self.filesSubBLayout.addWidget(self.inputSourceFile)
-        self.filesSubBLayout.addWidget(self.btnSourceFile)
+        self.filesSubBLayout.addWidget(self.filesSourceFileLabel, 1)
+        self.filesSubBLayout.addWidget(self.inputSourceFile, 6)
+        self.filesSubBLayout.addWidget(self.btnSourceFile, 1)
 
         self.filesSubCLayout = QHBoxLayout()
-        self.filesSubCLayout.addWidget(self.filesDestFileLabel)
-        self.filesSubCLayout.addWidget(self.inputDestFile)
-        self.filesSubCLayout.addWidget(self.btnDestFile)
+        self.filesSubCLayout.addWidget(self.filesDestFileLabel, 1)
+        self.filesSubCLayout.addWidget(self.inputDestFile, 6)
+        self.filesSubCLayout.addWidget(self.btnDestFile, 1)
 
         self.filesLayout.addWidget(self.filesLabel)
         self.filesLayout.addLayout(self.filesSubALayout)
@@ -326,6 +328,9 @@ class VigenereFileMode(QWidget):
         options = [self.alphabetMode, self.conversionMode, self.complianceMode, "preserve", 8, self.whitespaceMode]
         error = 0
 
+        # Get starting time
+        start = timer()
+
         # Execute File Calculations
         if (self.activeMode == "Encrypt" and self.alphabetMode != "NULL" and self.conversionMode != "NULL" and self.complianceMode != "NULL" and self.whitespaceMode != "NULL"):
             error = vigenere.vigenere_cipher_encrypt_file(self.inputSourceFile.text(), self.inputKeyFile.text(), self.inputDestFile.text(), options)
@@ -333,6 +338,10 @@ class VigenereFileMode(QWidget):
             error = vigenere.vigenere_cipher_decrypt_file(self.inputSourceFile.text(), self.inputKeyFile.text(), self.inputDestFile.text(), options)
         else:
             error = -5
+
+        # Get finish time
+        end = timer()
+        execTime = "%.2f" % (end - start)
 
         try: 
             if (error < 0):
@@ -349,9 +358,9 @@ class VigenereFileMode(QWidget):
                 else:
                     self.execSuccessLabel.setText("Error: Failure Due to a library function error!")
             else:
-                self.execSuccessLabel.setText("Success!")
+                self.execSuccessLabel.setText("Success! Finished execution time in " + execTime + " seconds!")
         except:
-            self.execSuccessLabel.setText("Success!")
+            self.execSuccessLabel.setText("Success! Vigenere program terminated gracefully!")
 
     @Slot()
     def chooseASCII(self):
@@ -415,8 +424,8 @@ class VigenereTextMode(QWidget):
         # Sub Labels
         self.paramModeLabel = QLabel("Mode: ")
         self.paramOption0Label = QLabel("Characters: ")
-        self.paramOption1Label = QLabel("Letter Case: \n (Only for 'Letters-only' option) ")
-        self.paramOption2Label = QLabel("Non-alphabet Symbols: ")
+        self.paramOption1Label = QLabel("Letter Case:\n(Only affects 'Letters' option) ")
+        self.paramOption2Label = QLabel("Non-compliant Symbols: ")
         self.paramOption5Label = QLabel("Whitespace: ")
         self.keyInputLabel = QLabel("Key: ")
         self.textInputLabel = QLabel("Text: ")
@@ -440,18 +449,18 @@ class VigenereTextMode(QWidget):
         self.modeGroup.addButton(self.btnEncrypt)
         self.modeGroup.addButton(self.btnDecrypt)
         
-        self.btnStandard = QRadioButton("Letters-only \n (AaBb)")
-        self.btnAlphaNum = QRadioButton("Alphanumeric \n (AaBb0123)")
-        self.btnASCII = QRadioButton("All Printable Symbols \n (AaBb0123$@%)")
+        self.btnStandard = QRadioButton("Letters\n(AaBb)")
+        self.btnAlphaNum = QRadioButton("Alphanumeric\n(AaBb0123)")
+        self.btnASCII = QRadioButton("All Printable Symbols\n(AaBb0123$@%)")
 
         self.options0Group = QButtonGroup()
         self.options0Group.addButton(self.btnStandard)
         self.options0Group.addButton(self.btnAlphaNum)
         self.options0Group.addButton(self.btnASCII)
 
-        self.btnLowerCase = QRadioButton("lowercase letters")
-        self.btnUpperCase = QRadioButton("UPPERCASE LETTERS")
-        self.btnDefaultCase = QRadioButton("Default Letters")
+        self.btnLowerCase = QRadioButton("Lowercase (ab)")
+        self.btnUpperCase = QRadioButton("Uppercase (AB)")
+        self.btnDefaultCase = QRadioButton("Default (AaBb)")
 
         self.options1Group = QButtonGroup()
         self.options1Group.addButton(self.btnLowerCase)
@@ -477,32 +486,32 @@ class VigenereTextMode(QWidget):
         self.paramLayout = QVBoxLayout()
 
         self.paramSubALayout = QHBoxLayout()
-        self.paramSubALayout.addWidget(self.paramModeLabel)
-        self.paramSubALayout.addWidget(self.btnEncrypt)
-        self.paramSubALayout.addWidget(self.btnDecrypt)
+        self.paramSubALayout.addWidget(self.paramModeLabel, 1)
+        self.paramSubALayout.addWidget(self.btnEncrypt, 1)
+        self.paramSubALayout.addWidget(self.btnDecrypt, 2)
 
         self.paramSubBLayout = QHBoxLayout()
-        self.paramSubBLayout.addWidget(self.paramOption0Label)
-        self.paramSubBLayout.addWidget(self.btnASCII)
-        self.paramSubBLayout.addWidget(self.btnAlphaNum)
-        self.paramSubBLayout.addWidget(self.btnStandard)
+        self.paramSubBLayout.addWidget(self.paramOption0Label, 1)
+        self.paramSubBLayout.addWidget(self.btnASCII, 1)
+        self.paramSubBLayout.addWidget(self.btnAlphaNum, 1)
+        self.paramSubBLayout.addWidget(self.btnStandard, 1)
 
 
         self.paramSubCLayout = QHBoxLayout()
-        self.paramSubCLayout.addWidget(self.paramOption1Label)
-        self.paramSubCLayout.addWidget(self.btnDefaultCase)
-        self.paramSubCLayout.addWidget(self.btnLowerCase)
-        self.paramSubCLayout.addWidget(self.btnUpperCase)
+        self.paramSubCLayout.addWidget(self.paramOption1Label, 1)
+        self.paramSubCLayout.addWidget(self.btnDefaultCase, 1)
+        self.paramSubCLayout.addWidget(self.btnLowerCase, 1)
+        self.paramSubCLayout.addWidget(self.btnUpperCase, 1)
 
         self.paramSubDLayout = QHBoxLayout()
-        self.paramSubDLayout.addWidget(self.paramOption2Label)
-        self.paramSubDLayout.addWidget(self.btnRemoveS)
-        self.paramSubDLayout.addWidget(self.btnIgnoreS)
+        self.paramSubDLayout.addWidget(self.paramOption2Label, 1)
+        self.paramSubDLayout.addWidget(self.btnRemoveS, 1)
+        self.paramSubDLayout.addWidget(self.btnIgnoreS, 2)
 
         self.paramSubGLayout = QHBoxLayout()
-        self.paramSubGLayout.addWidget(self.paramOption5Label)
-        self.paramSubGLayout.addWidget(self.btnLiteralW)
-        self.paramSubGLayout.addWidget(self.btnIgnoreW)
+        self.paramSubGLayout.addWidget(self.paramOption5Label, 1)
+        self.paramSubGLayout.addWidget(self.btnLiteralW, 1)
+        self.paramSubGLayout.addWidget(self.btnIgnoreW, 2)
 
         self.paramLayout.addWidget(self.paramLabel)
         self.paramLayout.addLayout(self.paramSubALayout)
@@ -515,12 +524,12 @@ class VigenereTextMode(QWidget):
         self.textLayout = QVBoxLayout()
 
         self.textSubALayout = QHBoxLayout()
-        self.textSubALayout.addWidget(self.keyInputLabel)
-        self.textSubALayout.addWidget(self.inputKey)
+        self.textSubALayout.addWidget(self.keyInputLabel, 1)
+        self.textSubALayout.addWidget(self.inputKey, 8)
 
         self.textSubBLayout = QHBoxLayout()
-        self.textSubBLayout.addWidget(self.textInputLabel)
-        self.textSubBLayout.addWidget(self.inputText)
+        self.textSubBLayout.addWidget(self.textInputLabel, 1)
+        self.textSubBLayout.addWidget(self.inputText, 8)
 
         self.textLayout.addWidget(self.textLabel)
         self.textLayout.addLayout(self.textSubALayout)
@@ -543,8 +552,8 @@ class VigenereTextMode(QWidget):
         self.outputLayout = QVBoxLayout()
         
         self.outputSubALayout = QHBoxLayout()
-        self.outputSubALayout.addWidget(self.outputTextLabel)
-        self.outputSubALayout.addWidget(self.outputText)
+        self.outputSubALayout.addWidget(self.outputTextLabel, 1)
+        self.outputSubALayout.addWidget(self.outputText, 8)
 
         self.outputLayout.addWidget(self.outputLabel)
         self.outputLayout.addLayout(self.outputSubALayout)
@@ -587,7 +596,7 @@ class VigenereTextMode(QWidget):
     def execCipher(self):
         options = [self.alphabetMode, self.conversionMode, self.complianceMode, "preserve", 8, self.whitespaceMode]
         error = 0
-
+ 
         # Update Text Edits (based on options)
         if (self.alphabetMode == "standard" and self.conversionMode == "lower"):
             self.inputKey.setText(self.inputKey.document().toPlainText().lower())
@@ -595,6 +604,9 @@ class VigenereTextMode(QWidget):
         elif (self.alphabetMode == "standard" and self.conversionMode == "upper"):
             self.inputKey.setText(self.inputKey.document().toPlainText().upper())
             self.inputText.setText(self.inputText.document().toPlainText().upper())
+
+        # Get starting timer
+        start = timer()
 
         # Execute cipher
         if (self.activeMode == "Encrypt" and self.alphabetMode != "NULL" and self.conversionMode != "NULL" and self.complianceMode != "NULL" and self.whitespaceMode != "NULL"):
@@ -604,18 +616,26 @@ class VigenereTextMode(QWidget):
         else:
             error = -5
 
+        # Get ending timer 
+        end = timer()
+        execTime = "%.2f" % (end - start)
+
         try: 
             if (error < 0):
                 if (error == -2):
                     self.execSuccessLabel.setText("Error: Invalid Key! Does not match selected parameters.")
+                elif (error == -4):
+                    self.execSuccessLabel.setText("Error: Invalid Key! Key is empty!")
                 elif (error == -5):
                     self.execSuccessLabel.setText("Error: Not enough parameters selected!")
+                elif (error == -6):
+                    self.execSuccessLabel.setText("Error: Invalid Input! Text input is empty!")
                 else:
                     self.execSuccessLabel.setText("Error: Failure due to library function error!")
             else:
-                self.execSuccessLabel.setText("Success!")
+                self.execSuccessLabel.setText("Success! Vigenere program terminated gracefully!")
         except:
-            self.execSuccessLabel.setText("Success!")
+            self.execSuccessLabel.setText("Success! Finished execution time in " + execTime + " seconds!")
             self.outputText.setText(error)
     
     @Slot()
