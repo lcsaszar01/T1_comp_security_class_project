@@ -749,12 +749,6 @@ void triple_des_decrypt_file(char source_file[], char key_file[], char *dest_fil
     fclose(dest_fptr);
 }
 
-extern "C" {
-    int My_Function(char source_file[], char key_file[], char* dest_file) {
-        return triple_des_encrypt_file(source_file, key_file, dest_file);
-    }
-}
-
 int main()
 {  
     printf("\n******** Text Mode ********\n");

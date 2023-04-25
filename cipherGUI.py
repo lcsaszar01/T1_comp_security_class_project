@@ -8,8 +8,6 @@
 ########### LIBRARIES ########## --------------------------------------------------------------------------
 # Python Libraries
 from timeit import default_timer as timer
-from ctypes import *
-# lib = cdll.LoadLibrary('./tdes.so')
 
 # PySide6 GUI Libraries
 import sys
@@ -35,7 +33,7 @@ from PySide6.QtWidgets import (
 
 # Cipher Files 
 import vigenere
-# import aes
+import aes
 
 
 ######### MAIN GUI WINDOW ########### --------------------------------------------------------------------------
