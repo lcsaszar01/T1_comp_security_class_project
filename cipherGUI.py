@@ -1625,7 +1625,7 @@ class RSATextMode(QWidget):
         if (self.activeMode == "Encrypt"):
             error = rsa.rsa_encrypt(self.inputText.document().toPlainText(), int(self.inputKey.text()), int(self.inputN.text())) 
         elif (self.activeMode == "Decrypt"):
-            error = rsa.rsa_decrypt(self.inputText.document().toPlainText(), self.inputKey.text(), self.inputN.text())
+            error = rsa.rsa_decrypt(self.inputText.document().toPlainText(), int(self.inputKey.text()), int(self.inputN.text()))
 
         # Get end time 
         end = timer() 
