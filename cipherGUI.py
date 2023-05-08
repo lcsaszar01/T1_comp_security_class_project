@@ -843,9 +843,9 @@ class TripleDESFileMode(QWidget):
         start = timer() 
 
         if (self.activeMode == "Encrypt"):
-            print("I am doing Triple DES Encrypt")
+            error = triple_des_redux.triple_des_encrypt_file(self.inputSourceFile.text(), self.inputKeyFile.text(), self.inputDestFile.text())
         elif (self.activeMode == "Decrypt"):
-            print("I am doing Triple DES Decrypt")
+            error = triple_des_redux.triple_des_decrypt_file(self.inputSourceFile.text(), self.inputKeyFile.text(), self.inputDestFile.text())
 
         end = timer()
         execTime = "%.2f" % (end - start)
@@ -987,10 +987,6 @@ class TripleDESTextMode(QWidget):
         if (self.activeMode == "Encrypt"):
             error = error
             error = triple_des_redux.triple_des_encrypt_text(self.inputText.document().toPlainText(), [self.inputKey1.text(), self.inputKey2.text(), self.inputKey3.text()])
-            #try:
-            #   error = triple_des_redux.triple_des_encrypt_text(self.inputText.text(), [self.inputKey1.text(), self.inputKey2.text(), self.inputKey3.text()])
-            #except:
-            #    self.outputText.setText("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")
         elif (self.activeMode == "Decrypt"):
             error = error
             error = triple_des_redux.triple_des_decrypt_text(self.inputText.document().toPlainText(), [self.inputKey1.text(), self.inputKey2.text(), self.inputKey3.text()])

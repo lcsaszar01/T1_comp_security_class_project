@@ -305,17 +305,13 @@ def triple_des_encrypt_file(input_file, key_file, dest_file):
 
     new_str = new_str.encode("utf-8")
 
-    with open(dest_file, "wb") as f:
-        f.write(new_str)
-        f.close()
-
-    #try: 
-    #    with open(dest_file, "wb") as f:
-    #        f.writelines(new_str)
-    #        f.close()
-    #except:
-    #    print("Error: Failed to Create File")
-    #    return -3
+    try: 
+        with open(dest_file, "wb") as f:
+            f.write(new_str)
+            f.close()
+    except: 
+        print("ERROR: Failed to create file!")
+        return -3
 
     return 0
 
@@ -388,9 +384,7 @@ def read_keys(source_file):
 
 
 # GENERATE ROUND KEYS
-
-
-
+'''
 if __name__ == "__main__":
     ciphertext = "0001001100110110001111110110010010010110100100101010110110101011"
     key = "0100110001001111010101100100010101001110010001000100001101010011"
@@ -404,3 +398,4 @@ if __name__ == "__main__":
     # print(triple_des_decrypt_text(ciphertext, keys))
     # triple_des_encrypt_file("beemovie.png", "tripleDesKey.txt", "beedecrypt.bin")
     triple_des_decrypt_file("beedecrypt.bin", "tripleDesKey.txt", "beedecrypt.txt")
+'''
