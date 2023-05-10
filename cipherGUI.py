@@ -1168,9 +1168,9 @@ class AESFileMode(QWidget):
 
         start = timer()
         if (self.activeMode == "Encrypt"):
-            print("I am doing AES Encrypt")
+            aes.aes_encrypt_file(self.inputSourceFile.text(), self.inputKeyFile.text(), "aesDigest.txt", "aesNonce.txt", self.inputDestFile.text())
         elif (self.activeMode == "Decrypt"):
-            print("I am doing AES Decrypt")
+            aes.aes_decrypt_file(self.inputSourceFile.text(), self.inputKeyFile.text(), "aesDigest.txt", "aesNonce.txt", self.inputDestFile.text())
         end = timer()
         execTime = "%.2f" % (end - start)
         
@@ -1493,9 +1493,9 @@ class RSAFileMode(QWidget):
         start = timer()
 
         if (self.activeMode == "Encrypt"):
-            error = rsa.rsa_encrypt_file(self.inputSourceFile.text(), self.inputKeyFile.text(), self.inputDestFile.text())
+            rsa.rsa_encrypt_file(self.inputSourceFile.text(), self.inputKeyFile.text())
         elif (self.activeMode == "Decrypt"):
-            error = rsa.rsa_decrypt_file(self.inputSourceFile.text(), self.inputKeyFile.text(), self.inputDestFile.text())
+            rsa.rsa_decrypt_file(self.inputSourceFile.text(), self.inputKeyFile.text())
 
         # Get End time
         end = timer()
