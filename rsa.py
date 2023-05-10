@@ -1,15 +1,8 @@
-﻿from ctypes import sizeof
+from ctypes import sizeof
 import math
 import fileinput
 
-# itty bitty bug: the message to be encrypted can't have a number followed by !
-# (specifically at the end of the string), decoding does not like that for some reason
-# I am too lazy to figure it out
-# yikes, 'my name is cori' also throws an error ¯\_(ツ)_/¯
-
 def rsa_encrypt(message, e, n):
-    # Check and see if e and n are valid
-
     # Convert the message to an integer
     message_int = int.from_bytes(message.encode(encoding='utf-8',errors='strict'), 'big')
     
@@ -22,8 +15,6 @@ def rsa_encrypt(message, e, n):
     return hex_encrypted.lstrip('0')
 
 def rsa_decrypt(hex_encrypted, d, n):
-    # check if d and n are valid
-
     # Convert the encrypted message from hexadecimal to an integer
     encrypted_int = int.from_bytes(bytes.fromhex(hex_encrypted), "big")
     
@@ -34,48 +25,44 @@ def rsa_decrypt(hex_encrypted, d, n):
     decrypted_message = decrypted_int.to_bytes(math.ceil(decrypted_int.bit_length() / 8), 'big').decode('utf-8')
     return decrypted_message
 
-def rsa_encrypt_file(source_file, key_file, dest_file):
+def rsa_encrypt_file(source_file, key_file):
   # read in the plaintext file and key file
   plaintext = read_file(source_file)
   if(plaintext == -1):
     return -1
   e, d, n = read_keys(key_file)
-
-  # error checking on the given e, d, and n
-  e_result = input_error_check(e, d, n)
-  if e_result == -1:
+  if e==-1 and d==-1 and n==-1: # check for errors
     return -1
 
   # call rsa_encrypt
   ciphertext = rsa_encrypt(plaintext, e, n)
 
   # create file with output
-  result = create_file(ciphertext, dest_file)
+  temp = source_file.split('.')
+  dest_name = temp[0] + "-encrypted." + temp[1]
+  result = create_file(ciphertext, dest_name)
   if(result == -1):
     return -1
-  return 0 
 
-def rsa_decrypt_file(source_file, key_file, dest_file):
+def rsa_decrypt_file(source_file, key_file):
   # read in the plaintext file and the key file
   ciphertext = read_file(source_file)
   if(ciphertext == -1):
     return -1
   e, d, n = read_keys(key_file)
-  print(e, d, n)
-
-  # error checking on the given e, d, and n
-  e_result = input_error_check(e, d, n)
-  if e_result == -1:
+  if e==-1 and d==-1 and n==-1: # check for errors
     return -1
 
   # call rsa_decrypt
   plaintext = rsa_decrypt(ciphertext, d, n)
 
   # create file with output
-  result = create_file(plaintext, dest_file)
+  temp = source_file.split('-')
+  f_type = temp[1].split('.')
+  dest_name = temp[0] + "-decrypted." + f_type[1]
+  result = create_file(plaintext, dest_name)
   if(result == -1):
     return -1
-  return 0 
 
 def read_file(source_file):
   data = ""
@@ -83,10 +70,9 @@ def read_file(source_file):
     with fileinput.input(files=(source_file)) as f:
       for line in f:
         data = data + line
+    return data
   except:
     return -1
-
-  return data
 
 def read_keys(source_file):
   f = open(source_file, 'r')
@@ -104,10 +90,17 @@ def read_keys(source_file):
       n = int(line.strip())
     count += 1
   
-  return e, d, n
+  if input_error_check(e, d, n)==False:
+    return -1, -1, -1;
+  
+  return e, d, n;
 
 def input_error_check(e, d, n): # check to see if e, d, and n are valid RSA key pairs
-  int = 1
+  message = "Hello" # test string
+  cipher_int = int.from_bytes(message.encode(encoding='utf-8',errors='strict'), 'big')
+  ciphertext = pow(cipher_int, e, n)
+  plain_int = pow(ciphertext, d, n)
+  return plain_int == cipher_int
 
 def create_file(content, dest_name):
   try:
@@ -123,11 +116,20 @@ if __name__ == "__main__":
   d = 52203292265329821477201215331647767385
   n = 109658872566201497189314566136483333067
 
+  # test the keys
+  valid = input_error_check(e, d, n)
+  print(valid)
+
   # Test encryption and decryption
-  # message = 'we are group 2'
-  message = input("enter a string to encrypt: ")
+  message = 'we are group 2'
   encrypted = rsa_encrypt(message, e, n)
   print(encrypted)
-  encrypted_input = input("enter a string to decrypt: ")
-  decrypted = rsa_decrypt(encrypted_input, d, n)
+  decrypted = rsa_decrypt(encrypted, d, n)
   print(decrypted)
+
+  # test file encryption and decryption
+  key_file = "rsa_keys.txt"
+  og_file = "sample.txt"
+
+  f_encrypt = rsa_encrypt_file(og_file, key_file)
+  f_decrypt = rsa_decrypt_file("sample-encrypted.txt", key_file)
